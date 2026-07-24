@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+python-docx
+fpdf2
+python-multipart
+groq
+python-dotenv
