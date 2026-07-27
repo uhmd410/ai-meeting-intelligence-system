@@ -1,0 +1,35 @@
+[Slack huddle transcript, auto-captioned, lightly cleaned up]
+
+Umair: hey can everyone hear me ok
+Priya: yeah loud and clear
+Daniel: yep all good
+Umair: cool cool, sorry I'm like two minutes late my laptop decided to update itself
+Priya: haha classic, ok no worries. so where were we
+
+Daniel: oh man before we start did anyone see the game last night
+Priya: don't even start
+Daniel: ok ok fine fine. so backend wise, things are mostly fine, staging is up, groq calls are working, I'm not gonna lie the json parsing broke like three times yesterday
+Umair: yeah that's on me kind of, the model keeps wrapping stuff in markdown fences sometimes even tho I told it not to
+Priya: is that gonna be a problem for launch
+Umair: nah I already added a strip function for it plus a retry, it's just annoying not blocking
+Priya: ok good enough for now, keep an eye on it though
+
+Daniel: also random thing, sara pinged me about the export button placement, I said just put it top right, seemed obvious to me
+Priya: fine by me
+Sara: [joined late] sorry guys internet died for a sec, what did I miss
+Priya: nothing important, we said export button top right
+Sara: works for me
+
+Daniel: oh also, I think we might need to bump the server a bit, groq calls are kinda slow sometimes like 4-5 seconds
+Priya: how slow is too slow
+Daniel: I mean it's fine for now honestly, just something to watch, not fixing today
+Priya: ok noted, not urgent
+
+Umair: quick one from me, should the demo use real transcripts or made up ones
+Priya: made up is safer honestly, don't wanna show client stuff by accident
+Umair: makes sense will do that
+
+Priya: ok I think that's everything, anyone have anything else
+Daniel: nope
+Sara: nope all good
+Priya: cool talk later everyone

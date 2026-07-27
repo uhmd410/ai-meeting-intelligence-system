@@ -1,0 +1,29 @@
+Weekly Product Sync — Q3 Planning
+Date: March 4, 2026
+Attendees: Priya Menon (Product Lead), Daniel Okafor (Engineering Manager), Sara Lindqvist (Design Lead), Umair Nawaz (AI Engineering Intern)
+
+Priya Menon: Let's start with the status of the meeting intelligence feature. Daniel, where are we?
+
+Daniel Okafor: Backend is on track. The FastAPI service is deployed to staging, and the Groq integration is passing our test transcripts. We still need to load-test it before we commit to a production date.
+
+Priya Menon: Understood. Sara, how's the UI coming along?
+
+Sara Lindqvist: The dashboard mockups are done and approved. I'm currently building the meeting detail view. I should have a clickable prototype by Thursday.
+
+Priya Menon: Great. Let's set the target release date for March 20th. Daniel, can your team commit to that?
+
+Daniel Okafor: Yes, assuming load testing doesn't surface anything major. I'll flag it immediately if it does.
+
+Priya Menon: Agreed. That's a decision then — March 20th release, contingent on load test results.
+
+Umair Nawaz: One thing to raise — the current prompt sometimes merges decisions and action items in edge cases with very informal transcripts. I'm iterating on the prompt wording this week.
+
+Priya Menon: Good catch. That's a risk we should track. Umair, can you have an updated version ready by Friday for the team to review?
+
+Umair Nawaz: Yes, I'll have a revised prompt and test results by Friday.
+
+Priya Menon: Perfect. Sara, one more thing — we also decided last week to hold off on dark mode until after the initial release. Just confirming that's still the plan.
+
+Sara Lindqvist: Yes, that's still the plan. Post-launch stretch goal.
+
+Priya Menon: Great. To summarize next steps: Daniel runs load tests this week, Sara delivers the clickable prototype Thursday, Umair delivers the revised prompt Friday, and we target March 20th for release. Let's reconvene next Monday to check progress. Thanks, everyone.
