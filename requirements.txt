@@ -7,3 +7,5 @@ fpdf2
 python-multipart
 groq
 python-dotenv
+pytest
+httpx

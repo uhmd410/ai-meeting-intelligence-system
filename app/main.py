@@ -1,7 +1,7 @@
-# app/main.py
 from fastapi import FastAPI
 from app.database import Base, engine
 from app import models
+from app.routers import meetings
 
 app = FastAPI(
     title="AI Meeting Intelligence System",
@@ -9,8 +9,9 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Create tables on startup (fine for SQLite/dev; you'd use Alembic migrations in production)
 Base.metadata.create_all(bind=engine)
+
+app.include_router(meetings.router)
 
 @app.get("/", tags=["Health"])
 def health_check():
