@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="View detailed AI-generated meeting minutes, action items, discussion points, and decisions."
+    />
+    <title>Meeting Detail — AI Meeting Intelligence</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link rel="stylesheet" href="/static/css/styles.css" />
+  </head>
+  <body>
+    <!-- ─── Navbar ────────────────────────────────────────────── -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+      <div class="container">
+        <a class="navbar-brand" href="/">
+          <span class="brand-icon"><i class="bi bi-mic-fill"></i></span>
+          MeetingAI
+        </a>
+        <button
+          class="navbar-toggler border-0"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#mainNav"
+          aria-controls="mainNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+          <ul class="navbar-nav ms-auto gap-1">
+            <li class="nav-item">
+              <a class="nav-link" href="/"
+                ><i class="bi bi-grid-1x2-fill me-1"></i>Dashboard</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/new-meeting"
+                ><i class="bi bi-plus-circle me-1"></i>New Meeting</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/history"
+                ><i class="bi bi-clock-history me-1"></i>History</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ─── Main Content ──────────────────────────────────────── -->
+    <main class="main-content">
+      <div class="container" style="max-width: 900px">
+        <!-- Alert container -->
+        <div id="alertContainer"></div>
+
+        <!-- Loading placeholder -->
+        <div id="loadingState" class="text-center py-5">
+          <div
+            class="spinner-border"
+            role="status"
+            style="color: var(--accent)"
+          >
+            <span class="visually-hidden">Loading…</span>
+          </div>
+          <p class="text-muted mt-3">Loading meeting details…</p>
+        </div>
+
+        <!-- Meeting content (hidden until loaded) -->
+        <div id="meetingContent" style="display: none">
+          <!-- ── Header Row ──────────────────────────────────── -->
+          <div class="page-header">
+            <div>
+              <a
+                href="/"
+                class="text-decoration-none small d-inline-flex align-items-center mb-2"
+                style="color: var(--accent)"
+              >
+                <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+              </a>
+              <h1 id="meetingTitle">Meeting Title</h1>
+              <div class="d-flex align-items-center gap-3 mt-1">
+                <span id="meetingBadge" class="badge-pending">pending</span>
+                <span class="text-muted small" id="meetingDate"></span>
+              </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <!-- Generate / Retry button (shown conditionally) -->
+              <button
+                class="btn btn-accent"
+                id="generateBtn"
+                style="display: none"
+              >
+                <i class="bi bi-stars me-1"></i>Generate Minutes
+              </button>
+
+              <!-- Export buttons — disabled / coming soon -->
+              <button class="btn btn-outline-secondary btn-sm" disabled>
+                <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+                <span class="coming-soon-label">Coming soon</span>
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" disabled>
+                <i class="bi bi-file-earmark-word me-1"></i>DOCX
+                <span class="coming-soon-label">Coming soon</span>
+              </button>
+
+              <!-- Delete -->
+              <button
+                class="btn btn-outline-danger btn-sm"
+                id="deleteBtn"
+              >
+                <i class="bi bi-trash3 me-1"></i>Delete
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Pending State ───────────────────────────────── -->
+          <div id="pendingState" style="display: none">
+            <div class="card">
+              <div class="card-body text-center py-5">
+                <i
+                  class="bi bi-hourglass-split"
+                  style="
+                    font-size: 2.5rem;
+                    color: var(--warning);
+                    display: block;
+                    margin-bottom: 1rem;
+                  "
+                ></i>
+                <h5>Minutes not yet generated</h5>
+                <p class="text-muted">
+                  Click "Generate Minutes" to process this meeting's
+                  transcript with AI.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Failed State ────────────────────────────────── -->
+          <div id="failedState" style="display: none">
+            <div class="card border-danger">
+              <div class="card-body text-center py-5">
+                <i
+                  class="bi bi-exclamation-triangle-fill"
+                  style="
+                    font-size: 2.5rem;
+                    color: var(--danger);
+                    display: block;
+                    margin-bottom: 1rem;
+                  "
+                ></i>
+                <h5>Generation Failed</h5>
+                <p class="text-muted">
+                  An error occurred while generating minutes. Click "Retry"
+                  to try again.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Completed State: Minutes ────────────────────── -->
+          <div id="completedState" style="display: none">
+            <!-- Summary -->
+            <div class="section-card">
+              <div class="section-header">
+                <div
+                  class="section-icon"
+                  style="
+                    background: var(--accent-light);
+                    color: var(--accent);
+                  "
+                >
+                  <i class="bi bi-card-text"></i>
+                </div>
+                <h6>Summary</h6>
+              </div>
+              <div class="section-body">
+                <p id="minutesSummary" class="mb-0" style="line-height: 1.7"></p>
+              </div>
+            </div>
+
+            <div class="row g-3">
+              <!-- Discussion Points -->
+              <div class="col-md-6">
+                <div class="section-card h-100">
+                  <div class="section-header">
+                    <div
+                      class="section-icon"
+                      style="background: #dbeafe; color: #2563eb"
+                    >
+                      <i class="bi bi-chat-dots"></i>
+                    </div>
+                    <h6>Discussion Points</h6>
+                  </div>
+                  <div class="section-body" id="discussionPoints"></div>
+                </div>
+              </div>
+
+              <!-- Decisions -->
+              <div class="col-md-6">
+                <div class="section-card h-100">
+                  <div class="section-header">
+                    <div
+                      class="section-icon"
+                      style="background: #e0e7ff; color: #4338ca"
+                    >
+                      <i class="bi bi-check2-square"></i>
+                    </div>
+                    <h6>Decisions</h6>
+                  </div>
+                  <div class="section-body" id="decisions"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3 mt-0">
+              <!-- Risks -->
+              <div class="col-md-6">
+                <div class="section-card risk-section h-100">
+                  <div class="section-header">
+                    <div
+                      class="section-icon"
+                      style="background: var(--warning-bg); color: var(--warning)"
+                    >
+                      <i class="bi bi-shield-exclamation"></i>
+                    </div>
+                    <h6>Risks</h6>
+                  </div>
+                  <div class="section-body" id="risks"></div>
+                </div>
+              </div>
+
+              <!-- Next Steps -->
+              <div class="col-md-6">
+                <div class="section-card h-100">
+                  <div class="section-header">
+                    <div
+                      class="section-icon"
+                      style="
+                        background: var(--success-bg);
+                        color: var(--success);
+                      "
+                    >
+                      <i class="bi bi-arrow-right-circle"></i>
+                    </div>
+                    <h6>Next Steps</h6>
+                  </div>
+                  <div class="section-body" id="nextSteps"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Items -->
+            <div class="section-card mt-3">
+              <div class="section-header">
+                <div
+                  class="section-icon"
+                  style="
+                    background: var(--accent-light);
+                    color: var(--accent);
+                  "
+                >
+                  <i class="bi bi-list-task"></i>
+                </div>
+                <h6>Action Items</h6>
+              </div>
+              <div class="section-body p-0" id="actionItemsContainer">
+                <!-- Table or "None recorded" rendered by JS -->
+              </div>
+            </div>
+          </div>
+          <!-- end completedState -->
+        </div>
+        <!-- end meetingContent -->
+      </div>
+    </main>
+
+    <!-- ─── Delete Confirmation Modal ─────────────────────────── -->
+    <div
+      class="modal fade"
+      id="deleteModal"
+      tabindex="-1"
+      aria-labelledby="deleteModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header border-0">
+            <h5 class="modal-title" id="deleteModalLabel">
+              <i class="bi bi-trash3 text-danger me-2"></i>Delete Meeting
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to permanently delete this meeting and all its
+            generated data? This action cannot be undone.
+          </div>
+          <div class="modal-footer border-0">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+              <i class="bi bi-trash3 me-1"></i>Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script>
+      // Extract meeting ID from URL path: /meetings/{id}
+      const pathParts = window.location.pathname.split("/");
+      const meetingId = pathParts[pathParts.length - 1];
+      const alertContainer = document.getElementById("alertContainer");
+      const loadingState = document.getElementById("loadingState");
+      const meetingContent = document.getElementById("meetingContent");
+      const generateBtnEl = document.getElementById("generateBtn");
+      const deleteBtnEl = document.getElementById("deleteBtn");
+      const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+
+      if (!meetingId) {
+        loadingState.style.display = "none";
+        showAlert(alertContainer, "No meeting ID provided in the URL.", "danger");
+      } else {
+        loadMeeting();
+      }
+
+      // ── Load & render meeting ────────────────────────────────
+      async function loadMeeting() {
+        loadingState.style.display = "block";
+        meetingContent.style.display = "none";
+
+        try {
+          const m = await getMeeting(meetingId);
+          renderMeeting(m);
+        } catch (err) {
+          loadingState.style.display = "none";
+          showAlert(alertContainer, err.message, "danger");
+        }
+      }
+
+      function renderMeeting(m) {
+        loadingState.style.display = "none";
+        meetingContent.style.display = "block";
+
+        // Header
+        document.getElementById("meetingTitle").textContent = m.title;
+        document.getElementById("meetingDate").textContent = formatDate(
+          m.created_at
+        );
+        const badge = document.getElementById("meetingBadge");
+        badge.className = statusBadgeClass(m.status);
+        badge.textContent = m.status;
+
+        // Update page title
+        document.title = `${m.title} — AI Meeting Intelligence`;
+
+        // State branches
+        document.getElementById("pendingState").style.display = "none";
+        document.getElementById("failedState").style.display = "none";
+        document.getElementById("completedState").style.display = "none";
+        generateBtnEl.style.display = "none";
+
+        if (m.status === "pending") {
+          document.getElementById("pendingState").style.display = "block";
+          generateBtnEl.style.display = "inline-flex";
+          generateBtnEl.innerHTML =
+            '<i class="bi bi-stars me-1"></i>Generate Minutes';
+        } else if (m.status === "failed") {
+          document.getElementById("failedState").style.display = "block";
+          generateBtnEl.style.display = "inline-flex";
+          generateBtnEl.innerHTML =
+            '<i class="bi bi-arrow-repeat me-1"></i>Retry';
+        } else if (m.status === "completed" && m.minutes) {
+          document.getElementById("completedState").style.display = "block";
+          renderMinutes(m);
+        }
+      }
+
+      function renderMinutes(m) {
+        const mins = m.minutes;
+
+        // Summary
+        document.getElementById("minutesSummary").textContent =
+          mins.summary || "No summary available.";
+
+        // Lists
+        renderList("discussionPoints", mins.discussion_points);
+        renderList("decisions", mins.decisions);
+        renderList("risks", mins.risks);
+        renderList("nextSteps", mins.next_steps);
+
+        // Action items
+        renderActionItems(m.action_items);
+      }
+
+      function renderList(containerId, items) {
+        const el = document.getElementById(containerId);
+        if (!items || items.length === 0) {
+          el.innerHTML = '<p class="none-recorded mb-0">None recorded</p>';
+          return;
+        }
+        el.innerHTML =
+          "<ul>" +
+          items.map((item) => `<li>${escapeHtml(item)}</li>`).join("") +
+          "</ul>";
+      }
+
+      function renderActionItems(items) {
+        const container = document.getElementById("actionItemsContainer");
+        if (!items || items.length === 0) {
+          container.innerHTML =
+            '<div class="p-3"><p class="none-recorded mb-0">None recorded</p></div>';
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="table-responsive">
+            <table class="table table-custom mb-0">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Owner</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${items
+                  .map(
+                    (ai) => `
+                  <tr>
+                    <td>${escapeHtml(ai.task)}</td>
+                    <td>${escapeHtml(ai.owner)}</td>
+                    <td>${ai.due_date ? escapeHtml(ai.due_date) : "—"}</td>
+                    <td><span class="${ai.status === "done" ? "badge-done" : "badge-open"}">${ai.status}</span></td>
+                  </tr>`
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>`;
+      }
+
+      // ── Generate / Retry ─────────────────────────────────────
+      generateBtnEl.addEventListener("click", async () => {
+        const restore = setButtonLoading(
+          generateBtnEl,
+          "Generating…"
+        );
+        try {
+          await generateMinutes(meetingId);
+          await loadMeeting();
+        } catch (err) {
+          showAlert(alertContainer, err.message, "danger");
+        } finally {
+          restore();
+        }
+      });
+
+      // ── Delete ───────────────────────────────────────────────
+      const deleteModal = new bootstrap.Modal(
+        document.getElementById("deleteModal")
+      );
+
+      deleteBtnEl.addEventListener("click", () => {
+        deleteModal.show();
+      });
+
+      confirmDeleteBtn.addEventListener("click", async () => {
+        const restore = setButtonLoading(
+          confirmDeleteBtn,
+          "Deleting…"
+        );
+        try {
+          await deleteMeeting(meetingId);
+          deleteModal.hide();
+          window.location.href = "/";
+        } catch (err) {
+          deleteModal.hide();
+          showAlert(alertContainer, err.message, "danger");
+          restore();
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional, List
 
@@ -11,8 +11,7 @@ class ActionItemOut(ActionItemCreate):
     id: int
     status: str = "open"
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class MeetingCreate(BaseModel):
     title: str
@@ -26,8 +25,7 @@ class MeetingMinutesOut(BaseModel):
     next_steps: List[str] = []
     generated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class MeetingOut(BaseModel):
     id: int
@@ -35,8 +33,7 @@ class MeetingOut(BaseModel):
     status: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class MeetingDetailOut(MeetingOut):
     raw_transcript: str

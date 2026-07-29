@@ -8,7 +8,7 @@ from app.schemas.meeting import MeetingOut, MeetingDetailOut
 from app.services.file_parser import extract_text_from_upload
 from app.llm_service import generate_meeting_minutes, LLMGenerationError
 
-router = APIRouter(prefix="/meetings", tags=["Meetings"])
+router = APIRouter(prefix="/api/meetings", tags=["Meetings"])
 
 
 @router.post("", response_model=MeetingOut, status_code=201)
