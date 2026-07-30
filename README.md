@@ -134,9 +134,3 @@ generated outputs, used to validate prompt reliability during development.
   transcripts.
 - **Dark Mode** — light/dark theme toggle available from the navigation
   header, with the preference persisted across sessions.
-
-### Stretch Goals Not Implemented
-Meeting Tags, AI Follow-up Emails, Calendar Integration, and Meeting
-Analytics were considered but not implemented in this submission, in favor
-of prioritizing depth and reliability on the core requirements plus the two
-stretch goals above.
