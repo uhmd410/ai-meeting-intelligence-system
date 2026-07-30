@@ -17,6 +17,7 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
     <link rel="stylesheet" href="/static/css/styles.css" />
+    <script src="/static/js/theme.js"></script>
   </head>
   <body>
     <!-- ─── Navbar ────────────────────────────────────────────── -->
@@ -55,6 +56,16 @@
               >
             </li>
           </ul>
+          <button
+            class="theme-toggle-btn ms-2"
+            id="themeToggleBtn"
+            type="button"
+            onclick="toggleTheme()"
+            aria-label="Toggle dark mode"
+            title="Toggle dark mode"
+          >
+            <i class="bi bi-moon-fill"></i>
+          </button>
         </div>
       </div>
     </nav>
@@ -76,8 +87,8 @@
           <div>
             <h1><i class="bi bi-plus-circle me-2" style="color: var(--accent)"></i>New Meeting</h1>
             <p class="subtitle">
-              Paste a transcript or upload a file — we'll generate minutes
-              automatically.
+              Paste a transcript, upload a file, or upload audio — we'll
+              generate minutes automatically.
             </p>
           </div>
         </div>
@@ -139,6 +150,20 @@
                       <i class="bi bi-upload me-1"></i>Upload File
                     </button>
                   </li>
+                  <li class="nav-item" role="presentation">
+                    <button
+                      class="nav-link"
+                      id="audio-tab"
+                      data-bs-toggle="tab"
+                      data-bs-target="#audioPanel"
+                      type="button"
+                      role="tab"
+                      aria-controls="audioPanel"
+                      aria-selected="false"
+                    >
+                      <i class="bi bi-soundwave me-1"></i>Upload Audio
+                    </button>
+                  </li>
                 </ul>
 
                 <div class="tab-content border border-top-0 rounded-bottom p-3">
@@ -180,6 +205,31 @@
                       style="display: none"
                     ></div>
                   </div>
+
+                  <!-- Audio Upload Panel -->
+                  <div
+                    class="tab-pane fade"
+                    id="audioPanel"
+                    role="tabpanel"
+                    aria-labelledby="audio-tab"
+                  >
+                    <input
+                      class="form-control"
+                      type="file"
+                      id="audioInput"
+                      accept=".mp3,.wav,.m4a,.ogg"
+                    />
+                    <div class="form-text mt-2">
+                      Accepted formats: <strong>.mp3</strong>,
+                      <strong>.wav</strong>, <strong>.m4a</strong>, or
+                      <strong>.ogg</strong> (max 25 MB)
+                    </div>
+                    <div
+                      id="audioError"
+                      class="text-danger small mt-1"
+                      style="display: none"
+                    ></div>
+                  </div>
                 </div>
               </div>
 
@@ -206,17 +256,23 @@
       const titleInput = document.getElementById("meetingTitle");
       const rawTextArea = document.getElementById("rawText");
       const fileInput = document.getElementById("fileInput");
+      const audioInput = document.getElementById("audioInput");
       const submitBtn = document.getElementById("submitBtn");
       const alertContainer = document.getElementById("alertContainer");
       const overlay = document.getElementById("loadingOverlay");
       const loadingMsg = document.getElementById("loadingMessage");
       const fileError = document.getElementById("fileError");
+      const audioError = document.getElementById("audioError");
 
       // Determine which tab is active
-      function isPasteMode() {
-        return document
-          .getElementById("paste-tab")
-          .classList.contains("active");
+      function getActiveMode() {
+        if (document.getElementById("paste-tab").classList.contains("active"))
+          return "paste";
+        if (document.getElementById("upload-tab").classList.contains("active"))
+          return "upload";
+        if (document.getElementById("audio-tab").classList.contains("active"))
+          return "audio";
+        return "paste";
       }
 
       // Client-side file extension validation
@@ -224,6 +280,21 @@
         const ext = file.name.split(".").pop().toLowerCase();
         if (ext !== "txt" && ext !== "docx") {
           return "Only .txt and .docx files are accepted.";
+        }
+        return null;
+      }
+
+      // Client-side audio validation
+      function validateAudio(file) {
+        const ext = file.name.split(".").pop().toLowerCase();
+        const allowed = ["mp3", "wav", "m4a", "ogg"];
+        if (!allowed.includes(ext)) {
+          return "Only .mp3, .wav, .m4a, and .ogg files are accepted.";
+        }
+        const maxSize = 25 * 1024 * 1024; // 25 MB
+        if (file.size > maxSize) {
+          const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+          return `File is too large (${sizeMb} MB). Maximum allowed is 25 MB.`;
         }
         return null;
       }
@@ -237,6 +308,19 @@
             fileInput.value = "";
           } else {
             fileError.style.display = "none";
+          }
+        }
+      });
+
+      audioInput.addEventListener("change", () => {
+        if (audioInput.files.length > 0) {
+          const err = validateAudio(audioInput.files[0]);
+          if (err) {
+            audioError.textContent = err;
+            audioError.style.display = "block";
+            audioInput.value = "";
+          } else {
+            audioError.style.display = "none";
           }
         }
       });
@@ -257,10 +341,11 @@
         titleInput.classList.remove("is-invalid");
 
         // Validate transcript source
+        const mode = getActiveMode();
         let rawText = null;
         let file = null;
 
-        if (isPasteMode()) {
+        if (mode === "paste") {
           rawText = rawTextArea.value.trim();
           if (!rawText) {
             showAlert(
@@ -271,7 +356,7 @@
             rawTextArea.focus();
             return;
           }
-        } else {
+        } else if (mode === "upload") {
           if (fileInput.files.length === 0) {
             showAlert(
               alertContainer,
@@ -286,11 +371,29 @@
             showAlert(alertContainer, fileErr, "warning");
             return;
           }
+        } else if (mode === "audio") {
+          if (audioInput.files.length === 0) {
+            showAlert(
+              alertContainer,
+              "Please select an audio file to upload.",
+              "warning"
+            );
+            return;
+          }
+          file = audioInput.files[0];
+          const audioErr = validateAudio(file);
+          if (audioErr) {
+            showAlert(alertContainer, audioErr, "warning");
+            return;
+          }
         }
 
         // Show full-screen loading overlay
         overlay.style.display = "flex";
-        loadingMsg.textContent = "Creating meeting…";
+        loadingMsg.textContent =
+          mode === "audio"
+            ? "Transcribing audio and creating meeting…"
+            : "Creating meeting…";
         submitBtn.disabled = true;
 
         try {
@@ -299,7 +402,9 @@
 
           // Step 2: Generate minutes
           loadingMsg.textContent =
-            "Generating meeting minutes… this may take a moment.";
+            mode === "audio"
+              ? "Transcribing and generating minutes… this may take a moment."
+              : "Generating meeting minutes… this may take a moment.";
           await generateMinutes(meeting.id);
 
           // Redirect to detail page

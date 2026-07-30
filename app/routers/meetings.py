@@ -9,10 +9,16 @@ from app.database import get_db
 from app import crud
 from app.schemas.meeting import MeetingOut, MeetingDetailOut
 from app.services.file_parser import extract_text_from_upload
+from app.services.audio_service import transcribe_audio, AudioTranscriptionError, ALLOWED_AUDIO_EXTENSIONS
 from app.llm_service import generate_meeting_minutes, LLMGenerationError
 from app.export_service import export_to_pdf, export_to_docx
 
 router = APIRouter(prefix="/api/meetings", tags=["Meetings"])
+
+# Supported file extensions by category
+TEXT_EXTENSIONS = {".txt", ".docx"}
+AUDIO_EXTENSIONS = ALLOWED_AUDIO_EXTENSIONS
+ALL_SUPPORTED_EXTENSIONS = TEXT_EXTENSIONS | AUDIO_EXTENSIONS
 
 
 @router.post("", response_model=MeetingOut, status_code=201)
@@ -27,7 +33,26 @@ async def create_meeting(
 
     if file:
         raw_bytes = await file.read()
-        transcript = extract_text_from_upload(file, raw_bytes)
+        filename = file.filename or ""
+        ext = ("." + filename.rsplit(".", 1)[-1].lower()) if "." in filename else ""
+
+        if ext in TEXT_EXTENSIONS:
+            # Existing .txt / .docx handling
+            transcript = extract_text_from_upload(file, raw_bytes)
+        elif ext in AUDIO_EXTENSIONS:
+            # Audio transcription via Groq Whisper
+            try:
+                transcript = transcribe_audio(raw_bytes, filename)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
+            except AudioTranscriptionError as e:
+                raise HTTPException(status_code=502, detail=f"Audio transcription failed: {e}")
+        else:
+            supported = ", ".join(sorted(ALL_SUPPORTED_EXTENSIONS))
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported file type. Use {supported}."
+            )
     else:
         transcript = raw_text
 

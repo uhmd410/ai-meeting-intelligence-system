@@ -13,7 +13,7 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-MODEL_NAME = "llama-3.3-70b-versatile"  # verify current name at console.groq.com/docs/models
+MODEL_NAME = "llama-3.3-70b-versatile"
 
 
 class LLMGenerationError(Exception):
@@ -25,7 +25,7 @@ def _call_groq(messages: list) -> str:
     response = client.chat.completions.create(
         model=MODEL_NAME,
         messages=messages,
-        temperature=0.2,  # low temperature: we want consistent structure, not creativity
+        temperature=0.2,  # low temperature for consistent structure
     )
     return response.choices[0].message.content
 

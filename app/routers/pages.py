@@ -1,8 +1,3 @@
-"""
-Page routes — serve HTML templates for the frontend UI.
-These are separate from the JSON API routes under /api/.
-"""
-
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 import os
