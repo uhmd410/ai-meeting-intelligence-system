@@ -167,3 +167,25 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
+// ─── Export URL helpers (direct download links, not fetch calls) ───────────────
+
+/**
+ * Return the URL for downloading a meeting's minutes as PDF.
+ * Intended for use as window.location.href (file download, not JSON).
+ * @param {number} meetingId
+ * @returns {string}
+ */
+function exportPdfUrl(meetingId) {
+  return `${API_BASE}/api/meetings/${meetingId}/export/pdf`;
+}
+
+/**
+ * Return the URL for downloading a meeting's minutes as DOCX.
+ * Intended for use as window.location.href (file download, not JSON).
+ * @param {number} meetingId
+ * @returns {string}
+ */
+function exportDocxUrl(meetingId) {
+  return `${API_BASE}/api/meetings/${meetingId}/export/docx`;
+}

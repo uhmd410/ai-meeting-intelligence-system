@@ -1,4 +1,7 @@
+from io import BytesIO
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -7,6 +10,7 @@ from app import crud
 from app.schemas.meeting import MeetingOut, MeetingDetailOut
 from app.services.file_parser import extract_text_from_upload
 from app.llm_service import generate_meeting_minutes, LLMGenerationError
+from app.export_service import export_to_pdf, export_to_docx
 
 router = APIRouter(prefix="/api/meetings", tags=["Meetings"])
 
@@ -68,3 +72,37 @@ def delete_meeting(meeting_id: int, db: Session = Depends(get_db)):
     deleted = crud.delete_meeting(db, meeting_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Meeting not found.")
+
+
+@router.get("/{meeting_id}/export/pdf")
+def export_pdf(meeting_id: int, db: Session = Depends(get_db)):
+    detail = crud.get_meeting_detail(db, meeting_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="Meeting not found.")
+    if detail["minutes"] is None:
+        raise HTTPException(status_code=400, detail="Minutes have not been generated yet.")
+
+    pdf_bytes = export_to_pdf(detail)
+    filename = detail["title"].replace(" ", "_") + "_minutes.pdf"
+    return StreamingResponse(
+        BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/{meeting_id}/export/docx")
+def export_docx(meeting_id: int, db: Session = Depends(get_db)):
+    detail = crud.get_meeting_detail(db, meeting_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="Meeting not found.")
+    if detail["minutes"] is None:
+        raise HTTPException(status_code=400, detail="Minutes have not been generated yet.")
+
+    docx_bytes = export_to_docx(detail)
+    filename = detail["title"].replace(" ", "_") + "_minutes.docx"
+    return StreamingResponse(
+        BytesIO(docx_bytes),
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

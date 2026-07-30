@@ -105,14 +105,12 @@
                 <i class="bi bi-stars me-1"></i>Generate Minutes
               </button>
 
-              <!-- Export buttons — disabled / coming soon -->
-              <button class="btn btn-outline-secondary btn-sm" disabled>
+              <!-- Export buttons — enabled when meeting is completed -->
+              <button class="btn btn-outline-secondary btn-sm" id="exportPdfBtn" disabled>
                 <i class="bi bi-file-earmark-pdf me-1"></i>PDF
-                <span class="coming-soon-label">Coming soon</span>
               </button>
-              <button class="btn btn-outline-secondary btn-sm" disabled>
+              <button class="btn btn-outline-secondary btn-sm" id="exportDocxBtn" disabled>
                 <i class="bi bi-file-earmark-word me-1"></i>DOCX
-                <span class="coming-soon-label">Coming soon</span>
               </button>
 
               <!-- Delete -->
@@ -338,6 +336,8 @@
       const meetingContent = document.getElementById("meetingContent");
       const generateBtnEl = document.getElementById("generateBtn");
       const deleteBtnEl = document.getElementById("deleteBtn");
+      const exportPdfBtn = document.getElementById("exportPdfBtn");
+      const exportDocxBtn = document.getElementById("exportDocxBtn");
       const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
 
       if (!meetingId) {
@@ -382,6 +382,8 @@
         document.getElementById("failedState").style.display = "none";
         document.getElementById("completedState").style.display = "none";
         generateBtnEl.style.display = "none";
+        exportPdfBtn.disabled = true;
+        exportDocxBtn.disabled = true;
 
         if (m.status === "pending") {
           document.getElementById("pendingState").style.display = "block";
@@ -395,6 +397,8 @@
             '<i class="bi bi-arrow-repeat me-1"></i>Retry';
         } else if (m.status === "completed" && m.minutes) {
           document.getElementById("completedState").style.display = "block";
+          exportPdfBtn.disabled = false;
+          exportDocxBtn.disabled = false;
           renderMinutes(m);
         }
       }
@@ -463,6 +467,14 @@
             </table>
           </div>`;
       }
+
+      // ── Export button handlers ──────────────────────────────
+      exportPdfBtn.addEventListener("click", () => {
+        window.location.href = exportPdfUrl(meetingId);
+      });
+      exportDocxBtn.addEventListener("click", () => {
+        window.location.href = exportDocxUrl(meetingId);
+      });
 
       // ── Generate / Retry ─────────────────────────────────────
       generateBtnEl.addEventListener("click", async () => {
