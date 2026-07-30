@@ -119,7 +119,7 @@ and very short) — see `/samples`.
 ## Screenshots
 
 See `/screenshots` for: Dashboard, New Meeting (text/file/audio upload),
-Meeting Detail, History, Dark Mode, and Swagger API docs.
+Meeting Detail, History, Dark Mode.
 
 ## Sample Data
 
